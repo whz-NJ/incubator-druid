@@ -109,7 +109,7 @@ public class IndexMergerTestBase
     );
   }
 
-  static IndexSpec makeIndexSpec(
+  public static IndexSpec makeIndexSpec(
       BitmapSerdeFactory bitmapSerdeFactory,
       CompressedObjectStrategy.CompressionStrategy compressionStrategy,
       CompressedObjectStrategy.CompressionStrategy dimCompressionStrategy,

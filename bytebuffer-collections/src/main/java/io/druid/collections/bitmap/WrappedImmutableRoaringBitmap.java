@@ -19,6 +19,7 @@
 
 package io.druid.collections.bitmap;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.common.base.Throwables;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
@@ -55,6 +56,7 @@ public class WrappedImmutableRoaringBitmap implements ImmutableBitmap
   }
 
   @Override
+  @JsonValue
   public byte[] toBytes()
   {
     try {

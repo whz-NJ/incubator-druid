@@ -111,6 +111,12 @@
                                 <argument>io.druid.extensions:druid-examples</argument>
                                 <argument>-c</argument>
                                 <argument>io.druid.extensions:simple-client-sslcontext</argument>
+                                <argument>-c</argument>
+                                <argument>io.druid.extensions.contrib:druid-kylin-distinctcount</argument>
+                                <argument>-c</argument>
+                                <argument>io.druid.extensions.contrib:druid-kylin-extendcolumn</argument>
+                                <argument>-c</argument>
+                                <argument>io.druid.extensions.contrib:druid-decimal</argument>
                                 <argument>${druid.distribution.pulldeps.opts}</argument>
                             </arguments>
                         </configuration>
@@ -214,6 +220,12 @@
                                         <argument>io.druid.extensions.contrib:druid-cloudfiles-extensions</argument>
                                         <argument>-c</argument>
                                         <argument>io.druid.extensions.contrib:druid-distinctcount</argument>
+                                        <argument>-c</argument>
+                                        <argument>io.druid.extensions.contrib:druid-kylin-distinctcount</argument>
+                                        <argument>-c</argument>
+                                        <argument>io.druid.extensions.contrib:druid-kylin-extendcolumn</argument>
+                                        <argument>-c</argument>
+                                        <argument>io.druid.extensions.contrib:druid-decimal</argument>
                                         <argument>-c</argument>
                                         <argument>io.druid.extensions.contrib:druid-rocketmq</argument>
                                         <argument>-c</argument>

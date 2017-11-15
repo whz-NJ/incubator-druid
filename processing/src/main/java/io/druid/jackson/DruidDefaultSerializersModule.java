@@ -35,6 +35,7 @@ import io.druid.java.util.common.guava.Yielder;
 import org.joda.time.DateTimeZone;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.ByteOrder;
 import java.util.TimeZone;
 
@@ -47,6 +48,23 @@ public class DruidDefaultSerializersModule extends SimpleModule
     super("Druid default serializers");
 
     JodaStuff.register(this);
+
+    addSerializer(
+            BigDecimal.class,
+            new JsonSerializer<BigDecimal>()
+            {
+              @Override
+              public void serialize(
+                      BigDecimal bigDecimal,
+                      JsonGenerator jsonGenerator,
+                      SerializerProvider serializerProvider
+              )
+                      throws IOException, JsonProcessingException
+              {
+                jsonGenerator.writeString(bigDecimal.toString());
+              }
+            }
+    );
 
     addDeserializer(
         DateTimeZone.class,

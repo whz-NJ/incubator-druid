@@ -130,6 +130,9 @@
         <module>extensions-contrib/rabbitmq</module>
         <module>extensions-contrib/distinctcount</module>
         <module>extensions-contrib/parquet-extensions</module>
+        <module>extensions-contrib/kylin-distinccount</module>
+        <module>extensions-contrib/kylin-extendcolumn</module>
+        <module>extensions-contrib/decimal</module>
         <module>extensions-contrib/statsd-emitter</module>
         <module>extensions-contrib/orc-extensions</module>
         <module>extensions-contrib/time-min-max</module>

@@ -22,6 +22,7 @@ package io.druid.segment;
 import com.fasterxml.jackson.databind.InjectableValues;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import io.druid.collections.bitmap.ImmutableBitmap;
 import io.druid.data.input.MapBasedRow;
 import io.druid.data.input.Row;
 import io.druid.jackson.DefaultObjectMapper;
@@ -318,7 +319,13 @@ public class TestHelper
       final Object expectedValue = expectedMap.get(key);
       final Object actualValue = actualMap.get(key);
 
-      if (expectedValue instanceof Float || expectedValue instanceof Double) {
+      if (expectedValue instanceof ImmutableBitmap || actualValue instanceof ImmutableBitmap) {
+        Assert.assertEquals(
+            StringUtils.format("%s: key[%s]", msg, key),
+            ((ImmutableBitmap) expectedValue).size(),
+            ((ImmutableBitmap) actualValue).size()
+        );
+      } else if (expectedValue instanceof Float || expectedValue instanceof Double) {
         Assert.assertEquals(
             StringUtils.format("%s: key[%s]", msg, key),
             ((Number) expectedValue).doubleValue(),
