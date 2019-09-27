@@ -131,6 +131,7 @@
         <module>extensions-contrib/distinctcount</module>
         <module>extensions-contrib/parquet-extensions</module>
         <module>extensions-contrib/kylin-distinccount</module>
+        <module>extensions-contrib/kylin-hllc</module>
         <module>extensions-contrib/kylin-extendcolumn</module>
         <module>extensions-contrib/decimal</module>
         <module>extensions-contrib/statsd-emitter</module>
