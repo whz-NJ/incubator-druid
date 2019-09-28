@@ -17,7 +17,7 @@ public class HLLCAggregatorFactoryTest
         int precision = 10;
         HLLCAggregatorFactory factory = new HLLCAggregatorFactory("name",
                 "field", precision);
-        HLLCSerde hllcSerde = new HLLCSerde();
+        HLLCounterSerde hllcSerde = new HLLCounterSerde();
         ObjectStrategy objectStrategy = hllcSerde.getObjectStrategy();
         HLLCounter hllc = new HLLCounter(precision, RegisterType.DENSE);
         for (int i = 0; i < 10; i++) {
@@ -27,8 +27,8 @@ public class HLLCAggregatorFactoryTest
                 < 13));
 
         byte[] bytes = objectStrategy.toBytes(hllc);
-        HLLCounter hllc2 = (HLLCounter) factory.deserialize(bytes);
+        WrappedHLLCounter wrappedHLLCounter = (WrappedHLLCounter) factory.deserialize(bytes);
 
-        assert (hllc.getCountEstimate() == hllc2.getCountEstimate());
+        assert (hllc.getCountEstimate() == wrappedHLLCounter.getCountEstimate());
     }
 }

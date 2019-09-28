@@ -15,27 +15,27 @@ public class HLLCAggregator implements Aggregator
 
     private final ObjectColumnSelector selector;
 
-    private HLLCounter hhlCounter;
+    private HLLCounter hllCounter;
 
     public HLLCAggregator(ObjectColumnSelector selector, Integer precision)
     {
         this.selector = selector;
-        this.hhlCounter = new HLLCounter(precision, RegisterType.DENSE);
+        this.hllCounter = new HLLCounter(precision, RegisterType.DENSE);
     }
 
     @Override public void aggregate()
     {
-        hhlCounter.merge((HLLCounter) selector.getObject());
+        hllCounter.merge((HLLCounter) selector.getObject());
     }
 
     @Override public void reset()
     {
-        hhlCounter = null;
+        hllCounter = null;
     }
 
     @Override public Object get()
     {
-        return hhlCounter;
+        return hllCounter;
     }
 
     @Override public float getFloat()
@@ -52,6 +52,6 @@ public class HLLCAggregator implements Aggregator
 
     @Override public void close()
     {
-        hhlCounter = null;
+        hllCounter = null;
     }
 }

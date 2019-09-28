@@ -36,41 +36,41 @@ public class HLLCBufferAggregator implements BufferAggregator
 
     private HLLCounter createNewHLL(ByteBuffer buf, int position)
     {
-        HLLCounter hhlRet = new HLLCounter(precision, RegisterType.DENSE);
-        Int2ObjectMap<HLLCounter> hhlMap = sketches.get(buf);
-        if (hhlMap == null) {
-            hhlMap = new Int2ObjectOpenHashMap<>();
-            sketches.put(buf, hhlMap);
+        HLLCounter hllRet = new HLLCounter(precision, RegisterType.DENSE);
+        Int2ObjectMap<HLLCounter> hllMap = sketches.get(buf);
+        if (hllMap == null) {
+            hllMap = new Int2ObjectOpenHashMap<>();
+            sketches.put(buf, hllMap);
         }
-        hhlMap.put(position, hhlRet);
-        return hhlRet;
+        hllMap.put(position, hllRet);
+        return hllRet;
     }
 
     //Note that this is not threadsafe and I don't think it needs to be
-    private HLLCounter getHHL(ByteBuffer buf, int position)
+    private HLLCounter getHLL(ByteBuffer buf, int position)
     {
-        Int2ObjectMap<HLLCounter> hhlMap = sketches.get(buf);
-        HLLCounter hhl = hhlMap != null ? hhlMap.get(position) : null;
-        if (hhl != null) {
-            return hhl;
+        Int2ObjectMap<HLLCounter> hllMap = sketches.get(buf);
+        HLLCounter hll = hllMap != null ? hllMap.get(position) : null;
+        if (hll != null) {
+            return hll;
         }
         return createNewHLL(buf, position);
     }
 
     @Override public void aggregate(ByteBuffer buf, int position)
     {
-        HLLCounter updateHHL = (HLLCounter) selector.getObject();
-        if (updateHHL == null) {
+        HLLCounter updateHLL = (HLLCounter) selector.getObject();
+        if (updateHLL == null) {
             return;
         }
 
-        HLLCounter currentHHL = getHHL(buf, position);
-        currentHHL.merge(updateHHL);
+        HLLCounter currentHLL = getHLL(buf, position);
+        currentHLL.merge(updateHLL);
     }
 
     @Override public Object get(ByteBuffer buf, int position)
     {
-        return getHHL(buf, position);
+        return getHLL(buf, position);
     }
 
     @Override public float getFloat(ByteBuffer buf, int position)
@@ -89,11 +89,11 @@ public class HLLCBufferAggregator implements BufferAggregator
             ByteBuffer oldBuffer, ByteBuffer newBuffer)
     {
         createNewHLL(newBuffer, newPosition);
-        Int2ObjectMap<HLLCounter> hhlMap = sketches.get(oldBuffer);
-        if (hhlMap != null) {
-            sketches.get(newBuffer).put(newPosition, hhlMap.get(oldPosition));
-            hhlMap.remove(oldPosition);
-            if (hhlMap.isEmpty()) {
+        Int2ObjectMap<HLLCounter> hllMap = sketches.get(oldBuffer);
+        if (hllMap != null) {
+            sketches.get(newBuffer).put(newPosition, hllMap.get(oldPosition));
+            hllMap.remove(oldPosition);
+            if (hllMap.isEmpty()) {
                 sketches.remove(oldBuffer);
             }
         }

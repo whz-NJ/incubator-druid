@@ -6,8 +6,14 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Binder;
 import io.druid.initialization.DruidModule;
+import io.druid.java.util.common.IAE;
 import io.druid.segment.serde.ComplexMetrics;
+import org.apache.kylin.measure.BufferedMeasureCodec;
+import org.apache.kylin.measure.hllc.HLLCounter;
+import org.apache.kylin.measure.hllc.RegisterType;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 /**
@@ -18,19 +24,21 @@ import java.util.List;
 public class HLLCModule implements DruidModule
 {
 
-    public static final String KYLIN_HHL_COUNT = "kylin-hhlc";
+    public static final String KYLIN_HLL_COUNT = "kylin-hllc";
+
+    private static ThreadLocal<ByteBuffer> hllByteBuf = new ThreadLocal<>();
 
     @Override public List<? extends Module> getJacksonModules()
     {
-        return ImmutableList.of(new SimpleModule("KylinHHLCModule")
+        return ImmutableList.of(new SimpleModule("KylinHLLCModule")
                 .registerSubtypes(new NamedType(HLLCAggregatorFactory.class,
-                        KYLIN_HHL_COUNT)));
+                        KYLIN_HLL_COUNT)));
     }
 
     @Override public void configure(Binder binder)
     {
-        if (ComplexMetrics.getSerdeForType(KYLIN_HHL_COUNT) == null) {
-            ComplexMetrics.registerSerde(KYLIN_HHL_COUNT, new HLLCSerde());
+        if (ComplexMetrics.getSerdeForType(KYLIN_HLL_COUNT) == null) {
+            ComplexMetrics.registerSerde(KYLIN_HLL_COUNT, new HLLCounterSerde());
         }
     }
 
@@ -51,5 +59,52 @@ public class HLLCModule implements DruidModule
         targets[1] = (byte) (i >> 16 & 0xFF);
         targets[0] = (byte) (i >> 24 & 0xFF);
         return targets;
+    }
+
+    public static byte[] toBytes(HLLCounter hllCounter)
+    {
+        ByteBuffer hllBuf = hllByteBuf.get();
+        if (hllBuf == null) {
+            hllBuf = ByteBuffer.allocate(
+                    BufferedMeasureCodec.DEFAULT_BUFFER_SIZE);
+            hllByteBuf.set(hllBuf);
+        }
+        try {
+            hllBuf.clear();
+            hllBuf.put(intToBytes(hllCounter.getPrecision()));
+            hllCounter.writeRegisters(hllBuf);
+            hllBuf.flip();
+            byte[] bytes = new byte[hllBuf.remaining()];
+            hllBuf.get(bytes);
+            return bytes;
+        }
+        catch (IOException e) {
+            throw new IAE("failed to serialize HLLCounter", e);
+        }
+    }
+
+    public static HLLCounter fromByteBuffer(ByteBuffer buffer,
+            int numBytes)
+    {
+        // Be conservative, don't assume we own this buffer.
+        final ByteBuffer readOnlyBuffer = buffer.asReadOnlyBuffer();
+        readOnlyBuffer.limit(readOnlyBuffer.position() + numBytes);
+
+        byte[] bytes = new byte[readOnlyBuffer.remaining()];
+        readOnlyBuffer.get(bytes, 0, bytes.length);
+
+        int precision = bytesToInt(bytes);
+        HLLCounter hllCounter = new HLLCounter(precision,
+                RegisterType.DENSE);
+
+        ByteBuffer hllBuffer = ByteBuffer.wrap(bytes, Integer.BYTES,
+                (bytes.length - Integer.BYTES));
+        try {
+            hllCounter.readRegisters(hllBuffer);
+        }
+        catch (IOException e) {
+            throw new IAE("failed to deserialize HLLCounter", e);
+        }
+        return hllCounter;
     }
 }

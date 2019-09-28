@@ -6,8 +6,8 @@ import com.google.common.base.Preconditions;
 import io.druid.java.util.common.IAE;
 import io.druid.query.aggregation.Aggregator;
 import io.druid.query.aggregation.AggregatorFactory;
+import io.druid.query.aggregation.AggregatorUtil;
 import io.druid.query.aggregation.BufferAggregator;
-import io.druid.query.cache.CacheKeyBuilder;
 import io.druid.segment.ColumnSelectorFactory;
 import io.druid.segment.ObjectColumnSelector;
 import org.apache.commons.codec.binary.Base64;
@@ -34,7 +34,7 @@ public class HLLCAggregatorFactory extends AggregatorFactory
 
     private Integer precision;
 
-    private final byte cacheTypeId = (byte) 0xf6;
+    private final byte CACHE_TYPE_ID = (byte) 21;
 
     @JsonCreator public HLLCAggregatorFactory(@JsonProperty("name") String name,
             @JsonProperty("fieldName") String fieldName,
@@ -141,7 +141,8 @@ public class HLLCAggregatorFactory extends AggregatorFactory
             HLLCounter hllCounter = new HLLCounter(precision,
                     RegisterType.DENSE);
             hllCounter.readRegisters(hllBuffer);
-            return hllCounter;
+            WrappedHLLCounter wrappedHLLCounter = new WrappedHLLCounter(hllCounter);
+            return wrappedHLLCounter;
         }
         catch (Exception e) {
             throw new IAE("failed to deserialize HLLCounter", e);
@@ -153,7 +154,15 @@ public class HLLCAggregatorFactory extends AggregatorFactory
         return object;
     }
 
-    @Override public String getName()
+    @JsonProperty
+    public String getFieldName()
+    {
+        return fieldName;
+    }
+
+    @Override
+    @JsonProperty
+    public String getName()
     {
         return name;
     }
@@ -163,9 +172,19 @@ public class HLLCAggregatorFactory extends AggregatorFactory
         return Arrays.asList(fieldName);
     }
 
+    @Override public byte[] getCacheKey()
+    {
+        byte[] fieldNameBytes = StringUtils.toUtf8(fieldName);
+        return ByteBuffer.allocate(2 + fieldNameBytes.length)
+                .put(CACHE_TYPE_ID)
+                .put(fieldNameBytes)
+                .put(AggregatorUtil.STRING_SEPARATOR)
+                .array();
+    }
+
     @Override public String getTypeName()
     {
-        return HLLCModule.KYLIN_HHL_COUNT;
+        return HLLCModule.KYLIN_HLL_COUNT;
     }
 
     @Override public int getMaxIntermediateSize()
@@ -173,9 +192,40 @@ public class HLLCAggregatorFactory extends AggregatorFactory
         return 4;
     }
 
-    @Override public byte[] getCacheKey()
+    @Override
+    public boolean equals(Object o)
     {
-        return new CacheKeyBuilder(cacheTypeId).appendString(name)
-                .appendString(fieldName).build();
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        HLLCAggregatorFactory that = (HLLCAggregatorFactory) o;
+
+        if (!fieldName.equals(that.fieldName)) {
+            return false;
+        }
+        if (!name.equals(that.name)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = name.hashCode();
+        result = 31 * result + fieldName.hashCode();
+        return result;
+    }
+
+    @Override public String toString()
+    {
+        return "HLLCAggregatorFactory{" + "name='" + name + '\''
+                + ", fieldName='" + fieldName + '\'' + ", precision="
+                + precision + '}';
     }
 }

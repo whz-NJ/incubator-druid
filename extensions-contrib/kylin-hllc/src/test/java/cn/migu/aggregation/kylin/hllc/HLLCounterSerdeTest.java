@@ -12,11 +12,11 @@ import java.nio.ByteBuffer;
  * @create 2019-09-27 14:02
  * @desc TODO: add description here
  **/
-public class HLLCSerdeTest
+public class HLLCounterSerdeTest
 {
     @Test public void testFromByteBuffer() throws Exception
     {
-        HLLCSerde hllcSerde = new HLLCSerde();
+        HLLCounterSerde hllcSerde = new HLLCounterSerde();
         ObjectStrategy objectStrategy = hllcSerde.getObjectStrategy();
         HLLCounter hllc = new HLLCounter(10, RegisterType.DENSE);
         for (int i = 0; i < 10; i++) {
