@@ -1,8 +1,6 @@
 package cn.migu.aggregation.kylin.hllc;
 
 import io.druid.segment.data.ObjectStrategy;
-import org.apache.kylin.measure.hllc.HLLCounter;
-import org.apache.kylin.measure.hllc.RegisterType;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
@@ -18,7 +16,7 @@ public class HLLCounterSerdeTest
     {
         HLLCounterSerde hllcSerde = new HLLCounterSerde();
         ObjectStrategy objectStrategy = hllcSerde.getObjectStrategy();
-        HLLCounter hllc = new HLLCounter(10, RegisterType.DENSE);
+        WrappedHLLCounter hllc = new WrappedHLLCounter(10);
         for (int i = 0; i < 10; i++) {
             hllc.add(i);
         }
@@ -26,11 +24,11 @@ public class HLLCounterSerdeTest
                 < 13));
 
         byte[] bytes = objectStrategy.toBytes(hllc);
-        HLLCounter hllc2 = (HLLCounter) objectStrategy
+        WrappedHLLCounter hllc2 = (WrappedHLLCounter) objectStrategy
                 .fromByteBuffer(ByteBuffer.wrap(bytes), bytes.length);
         assert (hllc.getCountEstimate() == hllc2.getCountEstimate());
 
-        HLLCounter hllc3 = new HLLCounter(10, RegisterType.DENSE);
+        WrappedHLLCounter hllc3 = new WrappedHLLCounter(10);
         for (int i = 0; i < 100; i++) {
             hllc3.add(i);
         }
@@ -38,7 +36,7 @@ public class HLLCounterSerdeTest
                 < 110));
 
         bytes = objectStrategy.toBytes(hllc3);
-        HLLCounter hllc4 = (HLLCounter) objectStrategy
+        WrappedHLLCounter hllc4 = (WrappedHLLCounter) objectStrategy
                 .fromByteBuffer(ByteBuffer.wrap(bytes), bytes.length);
         assert (hllc3.getCountEstimate() == hllc4.getCountEstimate());
 

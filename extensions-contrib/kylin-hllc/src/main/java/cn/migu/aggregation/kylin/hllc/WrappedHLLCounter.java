@@ -2,6 +2,10 @@ package cn.migu.aggregation.kylin.hllc;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import org.apache.kylin.measure.hllc.HLLCounter;
+import org.apache.kylin.measure.hllc.RegisterType;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * @author whz
@@ -17,9 +21,14 @@ public class WrappedHLLCounter
         this.hllCounter = hllCounter;
     }
 
+    public WrappedHLLCounter(int precision)
+    {
+        this.hllCounter = new HLLCounter(precision, RegisterType.DENSE);
+    }
+
     @JsonValue public byte[] toBytes()
     {
-        return HLLCModule.toBytes(hllCounter);
+        return HLLCModule.toBytes(this);
     }
 
     public long getCountEstimate()
@@ -30,5 +39,24 @@ public class WrappedHLLCounter
     public HLLCounter getHllCounter()
     {
         return hllCounter;
+    }
+
+    public void merge(WrappedHLLCounter anotherHLL)
+    {
+        hllCounter.merge(anotherHLL.hllCounter);
+    }
+
+    public int getPrecision()
+    {
+        return hllCounter.getPrecision();
+    }
+    public void writeRegisters(ByteBuffer byteBuffer) throws IOException
+    {
+        hllCounter.writeRegisters(byteBuffer);
+    }
+
+    public void add(int i)
+    {
+        hllCounter.add(i);
     }
 }

@@ -66,10 +66,10 @@ public class HLLCAggregatorFactory extends AggregatorFactory
                 .makeObjectColumnSelector(fieldName);
 
         final Class classOfObject = selector.classOfObject();
-        if (!classOfObject.equals(Object.class) && !HLLCounter.class
+        if (!classOfObject.equals(Object.class) && !WrappedHLLCounter.class
                 .isAssignableFrom(classOfObject)) {
             throw new IAE(
-                    "Incompatible type for metric[%s], expected a HLLCounter, got a %s",
+                    "Incompatible type for metric[%s], expected a WrappedHLLCounter, got a %s",
                     fieldName, classOfObject);
         }
 
@@ -83,8 +83,8 @@ public class HLLCAggregatorFactory extends AggregatorFactory
             @Override public int compare(Object o, Object o1)
             {
                 // TODO getCountEstimate should be defined as a member
-                long cnt = ((HLLCounter) o).getCountEstimate();
-                long cnt1 = ((HLLCounter) o1).getCountEstimate();
+                long cnt = ((WrappedHLLCounter) o).getCountEstimate();
+                long cnt1 = ((WrappedHLLCounter) o1).getCountEstimate();
                 return (cnt > cnt1) ? 1 : (cnt < cnt1) ? -1 : 0;
             }
         };
@@ -98,7 +98,7 @@ public class HLLCAggregatorFactory extends AggregatorFactory
         if (lhs == null) {
             return rhs;
         }
-        ((HLLCounter) lhs).merge((HLLCounter) rhs);
+        ((WrappedHLLCounter) lhs).merge((WrappedHLLCounter) rhs);
         return lhs;
     }
 
@@ -145,7 +145,7 @@ public class HLLCAggregatorFactory extends AggregatorFactory
             return wrappedHLLCounter;
         }
         catch (Exception e) {
-            throw new IAE("failed to deserialize HLLCounter", e);
+            throw new IAE("failed to deserialize WrappedHLLCounter", e);
         }
     }
 

@@ -1,8 +1,6 @@
 package cn.migu.aggregation.kylin.hllc;
 
 import io.druid.segment.data.ObjectStrategy;
-import org.apache.kylin.measure.hllc.HLLCounter;
-import org.apache.kylin.measure.hllc.RegisterType;
 import org.junit.Test;
 
 /**
@@ -19,7 +17,7 @@ public class HLLCAggregatorFactoryTest
                 "field", precision);
         HLLCounterSerde hllcSerde = new HLLCounterSerde();
         ObjectStrategy objectStrategy = hllcSerde.getObjectStrategy();
-        HLLCounter hllc = new HLLCounter(precision, RegisterType.DENSE);
+        WrappedHLLCounter hllc = new WrappedHLLCounter(precision);
         for (int i = 0; i < 10; i++) {
             hllc.add(i);
         }

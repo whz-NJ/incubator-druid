@@ -2,8 +2,6 @@ package cn.migu.aggregation.kylin.hllc;
 
 import io.druid.query.aggregation.Aggregator;
 import io.druid.segment.ObjectColumnSelector;
-import org.apache.kylin.measure.hllc.HLLCounter;
-import org.apache.kylin.measure.hllc.RegisterType;
 
 /**
  * @author whz
@@ -15,27 +13,27 @@ public class HLLCAggregator implements Aggregator
 
     private final ObjectColumnSelector selector;
 
-    private HLLCounter hllCounter;
+    private WrappedHLLCounter wrappedHLLCounter;
 
     public HLLCAggregator(ObjectColumnSelector selector, Integer precision)
     {
         this.selector = selector;
-        this.hllCounter = new HLLCounter(precision, RegisterType.DENSE);
+        this.wrappedHLLCounter = new WrappedHLLCounter(precision);
     }
 
     @Override public void aggregate()
     {
-        hllCounter.merge((HLLCounter) selector.getObject());
+        wrappedHLLCounter.merge((WrappedHLLCounter) selector.getObject());
     }
 
     @Override public void reset()
     {
-        hllCounter = null;
+        wrappedHLLCounter = null;
     }
 
     @Override public Object get()
     {
-        return hllCounter;
+        return wrappedHLLCounter;
     }
 
     @Override public float getFloat()
@@ -52,6 +50,6 @@ public class HLLCAggregator implements Aggregator
 
     @Override public void close()
     {
-        hllCounter = null;
+        wrappedHLLCounter = null;
     }
 }

@@ -4,8 +4,6 @@ import io.druid.query.aggregation.BufferAggregator;
 import io.druid.segment.ObjectColumnSelector;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import org.apache.kylin.measure.hllc.HLLCounter;
-import org.apache.kylin.measure.hllc.RegisterType;
 
 import java.nio.ByteBuffer;
 import java.util.IdentityHashMap;
@@ -21,7 +19,7 @@ public class HLLCBufferAggregator implements BufferAggregator
 
     private Integer precision;
 
-    private final IdentityHashMap<ByteBuffer, Int2ObjectMap<HLLCounter>> sketches = new IdentityHashMap<>();
+    private final IdentityHashMap<ByteBuffer, Int2ObjectMap<WrappedHLLCounter>> sketches = new IdentityHashMap<>();
 
     public HLLCBufferAggregator(ObjectColumnSelector selector, int precision)
     {
@@ -34,23 +32,23 @@ public class HLLCBufferAggregator implements BufferAggregator
         createNewHLL(buf, position);
     }
 
-    private HLLCounter createNewHLL(ByteBuffer buf, int position)
+    private WrappedHLLCounter createNewHLL(ByteBuffer buf, int position)
     {
-        HLLCounter hllRet = new HLLCounter(precision, RegisterType.DENSE);
-        Int2ObjectMap<HLLCounter> hllMap = sketches.get(buf);
+        WrappedHLLCounter wrappedHLLCounter = new WrappedHLLCounter(precision);
+        Int2ObjectMap<WrappedHLLCounter> hllMap = sketches.get(buf);
         if (hllMap == null) {
             hllMap = new Int2ObjectOpenHashMap<>();
             sketches.put(buf, hllMap);
         }
-        hllMap.put(position, hllRet);
-        return hllRet;
+        hllMap.put(position, wrappedHLLCounter);
+        return wrappedHLLCounter;
     }
 
     //Note that this is not threadsafe and I don't think it needs to be
-    private HLLCounter getHLL(ByteBuffer buf, int position)
+    private WrappedHLLCounter getHLL(ByteBuffer buf, int position)
     {
-        Int2ObjectMap<HLLCounter> hllMap = sketches.get(buf);
-        HLLCounter hll = hllMap != null ? hllMap.get(position) : null;
+        Int2ObjectMap<WrappedHLLCounter> hllMap = sketches.get(buf);
+        WrappedHLLCounter hll = hllMap != null ? hllMap.get(position) : null;
         if (hll != null) {
             return hll;
         }
@@ -59,12 +57,12 @@ public class HLLCBufferAggregator implements BufferAggregator
 
     @Override public void aggregate(ByteBuffer buf, int position)
     {
-        HLLCounter updateHLL = (HLLCounter) selector.getObject();
+        WrappedHLLCounter updateHLL = (WrappedHLLCounter) selector.getObject();
         if (updateHLL == null) {
             return;
         }
 
-        HLLCounter currentHLL = getHLL(buf, position);
+        WrappedHLLCounter currentHLL = getHLL(buf, position);
         currentHLL.merge(updateHLL);
     }
 
@@ -89,7 +87,7 @@ public class HLLCBufferAggregator implements BufferAggregator
             ByteBuffer oldBuffer, ByteBuffer newBuffer)
     {
         createNewHLL(newBuffer, newPosition);
-        Int2ObjectMap<HLLCounter> hllMap = sketches.get(oldBuffer);
+        Int2ObjectMap<WrappedHLLCounter> hllMap = sketches.get(oldBuffer);
         if (hllMap != null) {
             sketches.get(newBuffer).put(newPosition, hllMap.get(oldPosition));
             hllMap.remove(oldPosition);

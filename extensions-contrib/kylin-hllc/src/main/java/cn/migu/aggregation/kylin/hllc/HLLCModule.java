@@ -61,7 +61,7 @@ public class HLLCModule implements DruidModule
         return targets;
     }
 
-    public static byte[] toBytes(HLLCounter hllCounter)
+    public static byte[] toBytes(WrappedHLLCounter wrappedHLLCounter)
     {
         ByteBuffer hllBuf = hllByteBuf.get();
         if (hllBuf == null) {
@@ -71,8 +71,8 @@ public class HLLCModule implements DruidModule
         }
         try {
             hllBuf.clear();
-            hllBuf.put(intToBytes(hllCounter.getPrecision()));
-            hllCounter.writeRegisters(hllBuf);
+            hllBuf.put(intToBytes(wrappedHLLCounter.getPrecision()));
+            wrappedHLLCounter.writeRegisters(hllBuf);
             hllBuf.flip();
             byte[] bytes = new byte[hllBuf.remaining()];
             hllBuf.get(bytes);
@@ -83,7 +83,7 @@ public class HLLCModule implements DruidModule
         }
     }
 
-    public static HLLCounter fromByteBuffer(ByteBuffer buffer,
+    public static WrappedHLLCounter fromByteBuffer(ByteBuffer buffer,
             int numBytes)
     {
         // Be conservative, don't assume we own this buffer.
@@ -103,8 +103,8 @@ public class HLLCModule implements DruidModule
             hllCounter.readRegisters(hllBuffer);
         }
         catch (IOException e) {
-            throw new IAE("failed to deserialize HLLCounter", e);
+            throw new IAE("failed to deserialize WrappedHLLCounter", e);
         }
-        return hllCounter;
+        return new WrappedHLLCounter(hllCounter);
     }
 }

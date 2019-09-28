@@ -11,7 +11,6 @@ import io.druid.segment.serde.ComplexColumnPartSupplier;
 import io.druid.segment.serde.ComplexMetricExtractor;
 import io.druid.segment.serde.ComplexMetricSerde;
 import io.druid.segment.serde.LargeColumnSupportedComplexColumnSerializer;
-import org.apache.kylin.measure.hllc.HLLCounter;
 
 import java.nio.ByteBuffer;
 
@@ -31,30 +30,33 @@ public class HLLCounterSerde extends ComplexMetricSerde
     {
         return new ComplexMetricExtractor()
         {
-            @Override public Class<HLLCounter> extractedClass()
+            @Override public Class<WrappedHLLCounter> extractedClass()
             {
-                return HLLCounter.class;
+                return WrappedHLLCounter.class;
             }
 
-            @Override public HLLCounter extractValue(InputRow inputRow,
+            @Override public WrappedHLLCounter extractValue(InputRow inputRow,
                     String metricName)
             {
                 Object rawValue = inputRow.getRaw(metricName);
 
-                if (HLLCounter.class.isAssignableFrom(rawValue.getClass())) {
-                    return (HLLCounter) rawValue;
+                if (WrappedHLLCounter.class
+                        .isAssignableFrom(rawValue.getClass())) {
+                    return (WrappedHLLCounter) rawValue;
                 } else {
-                    throw new IAE("The class must be HLLCounter");
+                    throw new IAE("The class must be WrappedHLLCounter");
                 }
             }
         };
     }
 
-    @Override
-    public void deserializeColumn(ByteBuffer byteBuffer, ColumnBuilder columnBuilder)
+    @Override public void deserializeColumn(ByteBuffer byteBuffer,
+            ColumnBuilder columnBuilder)
     {
-        final GenericIndexed column = GenericIndexed.read(byteBuffer, getObjectStrategy());
-        columnBuilder.setComplexColumn(new ComplexColumnPartSupplier(getTypeName(), column));
+        final GenericIndexed column = GenericIndexed
+                .read(byteBuffer, getObjectStrategy());
+        columnBuilder.setComplexColumn(
+                new ComplexColumnPartSupplier(getTypeName(), column));
     }
 
     @Override public ObjectStrategy getObjectStrategy()
@@ -63,13 +65,15 @@ public class HLLCounterSerde extends ComplexMetricSerde
         {
             @Override public Class getClazz()
             {
-                return HLLCounter.class;
+                return WrappedHLLCounter.class;
             }
 
             @Override public Object fromByteBuffer(ByteBuffer buffer,
                     int numBytes)
             {
-                return HLLCModule.fromByteBuffer(buffer, numBytes);
+                WrappedHLLCounter wrappedHLLCounter = HLLCModule
+                        .fromByteBuffer(buffer, numBytes);
+                return wrappedHLLCounter;
             }
 
             @Override public byte[] toBytes(Object val)
@@ -78,8 +82,8 @@ public class HLLCounterSerde extends ComplexMetricSerde
                     return new byte[] {};
                 }
 
-                if (val instanceof HLLCounter) {
-                    return HLLCModule.toBytes((HLLCounter) val);
+                if (val instanceof WrappedHLLCounter) {
+                    return HLLCModule.toBytes((WrappedHLLCounter) val);
 
                 } else {
                     throw new IAE("Unknown class[%s], toString[%s]",
@@ -90,16 +94,17 @@ public class HLLCounterSerde extends ComplexMetricSerde
             @Override public int compare(Object o1, Object o2)
             {
                 // TODO cardinality should be a member of HyperLogLog
-                long card1 = ((HLLCounter) o1).getCountEstimate();
-                long card2 = ((HLLCounter) o2).getCountEstimate();
+                long card1 = ((WrappedHLLCounter) o1).getCountEstimate();
+                long card2 = ((WrappedHLLCounter) o2).getCountEstimate();
                 return (card1 > card2) ? 1 : (card1 < card2) ? -1 : 0;
             }
         };
     }
 
-    @Override
-    public GenericColumnSerializer getSerializer(IOPeon peon, String column)
+    @Override public GenericColumnSerializer getSerializer(IOPeon peon,
+            String column)
     {
-        return LargeColumnSupportedComplexColumnSerializer.create(peon, column, this.getObjectStrategy());
+        return LargeColumnSupportedComplexColumnSerializer
+                .create(peon, column, this.getObjectStrategy());
     }
 }
