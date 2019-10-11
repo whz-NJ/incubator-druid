@@ -10,7 +10,8 @@ import java.nio.ByteBuffer;
 /**
  * @author whz
  * @create 2019-09-28 19:33
- * @desc TODO: add description here
+ * @desc HLLCounter can't be serialized by jackson, so define a wapper
+ *
  **/
 public class WrappedHLLCounter
 {
@@ -23,12 +24,12 @@ public class WrappedHLLCounter
 
     public WrappedHLLCounter(int precision)
     {
-        this.hllCounter = new HLLCounter(precision, RegisterType.DENSE);
+        this.hllCounter = new HLLCounter(precision, RegisterType.SPARSE);
     }
 
     @JsonValue public byte[] toBytes()
     {
-        return HLLCModule.toBytes(this);
+        return HLLCModule.toBytes(hllCounter);
     }
 
     public long getCountEstimate()

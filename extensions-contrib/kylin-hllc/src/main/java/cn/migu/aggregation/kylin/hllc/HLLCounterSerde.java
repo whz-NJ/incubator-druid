@@ -11,6 +11,7 @@ import io.druid.segment.serde.ComplexColumnPartSupplier;
 import io.druid.segment.serde.ComplexMetricExtractor;
 import io.druid.segment.serde.ComplexMetricSerde;
 import io.druid.segment.serde.LargeColumnSupportedComplexColumnSerializer;
+import org.apache.kylin.measure.hllc.HLLCounter;
 
 import java.nio.ByteBuffer;
 
@@ -44,7 +45,9 @@ public class HLLCounterSerde extends ComplexMetricSerde
                         .isAssignableFrom(rawValue.getClass())) {
                     return (WrappedHLLCounter) rawValue;
                 } else {
-                    throw new IAE("The class must be WrappedHLLCounter");
+                    throw new IAE(
+                            "Unknown class[%s], toString[%s], metricName[%s]",
+                            rawValue.getClass(), rawValue, metricName);
                 }
             }
         };
@@ -71,9 +74,9 @@ public class HLLCounterSerde extends ComplexMetricSerde
             @Override public Object fromByteBuffer(ByteBuffer buffer,
                     int numBytes)
             {
-                WrappedHLLCounter wrappedHLLCounter = HLLCModule
+                HLLCounter hllCounter = HLLCModule
                         .fromByteBuffer(buffer, numBytes);
-                return wrappedHLLCounter;
+                return new WrappedHLLCounter(hllCounter);
             }
 
             @Override public byte[] toBytes(Object val)
@@ -83,7 +86,7 @@ public class HLLCounterSerde extends ComplexMetricSerde
                 }
 
                 if (val instanceof WrappedHLLCounter) {
-                    return HLLCModule.toBytes((WrappedHLLCounter) val);
+                    return HLLCModule.toBytes(((WrappedHLLCounter) val).getHllCounter());
 
                 } else {
                     throw new IAE("Unknown class[%s], toString[%s]",

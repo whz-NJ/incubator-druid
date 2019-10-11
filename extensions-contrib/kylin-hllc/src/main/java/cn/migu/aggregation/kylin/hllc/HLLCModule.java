@@ -42,12 +42,12 @@ public class HLLCModule implements DruidModule
         }
     }
 
-    public static int bytesToInt(byte[] bytes)
+    public static int bytesToInt(byte[] bytes, int offset)
     {
-        int b0 = bytes[0] & 0xFF;
-        int b1 = bytes[1] & 0xFF;
-        int b2 = bytes[2] & 0xFF;
-        int b3 = bytes[3] & 0xFF;
+        int b0 = bytes[offset] & 0xFF;
+        int b1 = bytes[offset + 1] & 0xFF;
+        int b2 = bytes[offset + 2] & 0xFF;
+        int b3 = bytes[offset + 3] & 0xFF;
         return (b0 << 24) | (b1 << 16) | (b2 << 8) | b3;
     }
 
@@ -61,7 +61,7 @@ public class HLLCModule implements DruidModule
         return targets;
     }
 
-    public static byte[] toBytes(WrappedHLLCounter wrappedHLLCounter)
+    public static byte[] toBytes(HLLCounter hllCounter)
     {
         ByteBuffer hllBuf = hllByteBuf.get();
         if (hllBuf == null) {
@@ -71,8 +71,9 @@ public class HLLCModule implements DruidModule
         }
         try {
             hllBuf.clear();
-            hllBuf.put(intToBytes(wrappedHLLCounter.getPrecision()));
-            wrappedHLLCounter.writeRegisters(hllBuf);
+            hllBuf.put(intToBytes(hllCounter.getPrecision()));
+            hllBuf.put(intToBytes(hllCounter.getRegisterType().ordinal()));
+            hllCounter.writeRegisters(hllBuf);
             hllBuf.flip();
             byte[] bytes = new byte[hllBuf.remaining()];
             hllBuf.get(bytes);
@@ -83,7 +84,7 @@ public class HLLCModule implements DruidModule
         }
     }
 
-    public static WrappedHLLCounter fromByteBuffer(ByteBuffer buffer,
+    public static HLLCounter fromByteBuffer(ByteBuffer buffer,
             int numBytes)
     {
         // Be conservative, don't assume we own this buffer.
@@ -93,18 +94,23 @@ public class HLLCModule implements DruidModule
         byte[] bytes = new byte[readOnlyBuffer.remaining()];
         readOnlyBuffer.get(bytes, 0, bytes.length);
 
-        int precision = bytesToInt(bytes);
-        HLLCounter hllCounter = new HLLCounter(precision,
-                RegisterType.DENSE);
+        return fromBytes(bytes);
+    }
 
-        ByteBuffer hllBuffer = ByteBuffer.wrap(bytes, Integer.BYTES,
-                (bytes.length - Integer.BYTES));
+    public static HLLCounter fromBytes(byte[] bytes)
+    {
+        int precision = bytesToInt(bytes, 0);
+        RegisterType registerType = RegisterType.values()[bytesToInt(bytes, Integer.BYTES)];
+        HLLCounter hllCounter = new HLLCounter(precision, registerType);
+
+        ByteBuffer hllBuffer = ByteBuffer.wrap(bytes, 2 * Integer.BYTES,
+                (bytes.length - (2 * Integer.BYTES)));
         try {
             hllCounter.readRegisters(hllBuffer);
         }
         catch (IOException e) {
-            throw new IAE("failed to deserialize WrappedHLLCounter", e);
+            throw new IAE("failed to deserialize HLLCounter", e);
         }
-        return new WrappedHLLCounter(hllCounter);
+        return hllCounter;
     }
 }

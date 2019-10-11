@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
 import io.druid.java.util.common.IAE;
+import io.druid.java.util.common.StringUtils;
+import io.druid.java.util.common.logger.Logger;
 import io.druid.query.aggregation.Aggregator;
 import io.druid.query.aggregation.AggregatorFactory;
 import io.druid.query.aggregation.AggregatorUtil;
@@ -11,9 +13,6 @@ import io.druid.query.aggregation.BufferAggregator;
 import io.druid.segment.ColumnSelectorFactory;
 import io.druid.segment.ObjectColumnSelector;
 import org.apache.commons.codec.binary.Base64;
-import io.druid.java.util.common.StringUtils;
-import org.apache.kylin.measure.hllc.HLLCounter;
-import org.apache.kylin.measure.hllc.RegisterType;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -27,6 +26,7 @@ import java.util.List;
  **/
 public class HLLCAggregatorFactory extends AggregatorFactory
 {
+    private final Logger logger = new Logger(HLLCAggregatorFactory.class);
 
     private final String name;
 
@@ -130,22 +130,11 @@ public class HLLCAggregatorFactory extends AggregatorFactory
             } else {
                 return object;
             }
-            int precision = HLLCModule.bytesToInt(bytes);
-            if (precision != this.precision) {
-                throw new IAE(
-                        "unexpected precision(%d), expected precison(%d).",
-                        precision, this.precision);
-            }
-            ByteBuffer hllBuffer = ByteBuffer
-                    .wrap(bytes, Integer.BYTES, (bytes.length - Integer.BYTES));
-            HLLCounter hllCounter = new HLLCounter(precision,
-                    RegisterType.DENSE);
-            hllCounter.readRegisters(hllBuffer);
-            WrappedHLLCounter wrappedHLLCounter = new WrappedHLLCounter(hllCounter);
-            return wrappedHLLCounter;
+            return new WrappedHLLCounter(HLLCModule.fromBytes(bytes));
         }
         catch (Exception e) {
-            throw new IAE("failed to deserialize WrappedHLLCounter", e);
+            logger.error(e, "failed to deserialize WrappedHLLCounter");
+            throw new IAE("failed to deserialize WrappedHLLCounter");
         }
     }
 
