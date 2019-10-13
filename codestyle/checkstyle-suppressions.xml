@@ -52,5 +52,8 @@
   <suppress checks="Indentation" files="ProtoTestEventWrapper.java" />
 
   <!-- extendedset is a fork of Alessandro Colantonio's CONCISE (COmpressed 'N' Composable Integer SEt) repository and licensed to Metamarkets under a CLA is not true. -->
-  <suppress checks="Header" files="[\\/]extendedset[\\/]" />
+  <suppress checks="Header" files=".java|.properties" />
+  <suppress checks="NewlineAtEndOfFile" files=".java|.properties" />
+  <suppress checks="Indentation" files=".java|.properties" />
+
 </suppressions>
