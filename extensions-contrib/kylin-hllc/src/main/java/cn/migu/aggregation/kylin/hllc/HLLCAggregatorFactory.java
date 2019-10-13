@@ -156,6 +156,13 @@ public class HLLCAggregatorFactory extends AggregatorFactory
         return name;
     }
 
+    @JsonProperty
+    public Integer getPrecision()
+    {
+        return precision;
+    }
+
+
     @Override public List<String> requiredFields()
     {
         return Arrays.asList(fieldName);
