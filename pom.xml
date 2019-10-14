@@ -143,6 +143,9 @@
         <module>extensions-contrib/kafka-emitter</module>
         <module>extensions-contrib/redis-cache</module>
         <module>extensions-contrib/kylin-hllc</module>
+        <module>extensions-contrib/decimal</module>
+        <module>extensions-contrib/kylin-distinccount</module>
+        <module>extensions-contrib/kylin-extendcolumn</module>
         <!-- distribution packaging -->
         <module>distribution</module>
     </modules>
