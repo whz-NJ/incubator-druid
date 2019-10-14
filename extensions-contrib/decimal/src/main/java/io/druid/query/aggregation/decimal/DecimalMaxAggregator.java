@@ -20,16 +20,16 @@
 package io.druid.query.aggregation.decimal;
 
 import io.druid.query.aggregation.Aggregator;
-import io.druid.segment.ObjectColumnSelector;
+import io.druid.segment.ColumnValueSelector;
 
 import java.math.BigDecimal;
 
 public class DecimalMaxAggregator implements Aggregator
 {
-  private final ObjectColumnSelector selector;
+  private final ColumnValueSelector selector;
   private BigDecimal max = null;
 
-  public DecimalMaxAggregator(ObjectColumnSelector selector)
+  public DecimalMaxAggregator(ColumnValueSelector selector)
   {
     this.selector = selector;
   }
@@ -43,12 +43,6 @@ public class DecimalMaxAggregator implements Aggregator
     } else if (max.compareTo(value) < 0) {
       max = value;
     }
-  }
-
-  @Override
-  public void reset()
-  {
-    max = null;
   }
 
   @Override

@@ -22,7 +22,6 @@ package io.druid.query.aggregation.kylin.extendcolumn;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
-
 import io.druid.java.util.common.IAE;
 import io.druid.java.util.common.StringUtils;
 import io.druid.query.aggregation.Aggregator;
@@ -30,7 +29,7 @@ import io.druid.query.aggregation.AggregatorFactory;
 import io.druid.query.aggregation.AggregatorUtil;
 import io.druid.query.aggregation.BufferAggregator;
 import io.druid.segment.ColumnSelectorFactory;
-import io.druid.segment.ObjectColumnSelector;
+import io.druid.segment.ColumnValueSelector;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -64,7 +63,7 @@ public class ExtendColumnAggregatorFactory extends AggregatorFactory
   @Override
   public Aggregator factorize(ColumnSelectorFactory columnFactory)
   {
-    ObjectColumnSelector selector = columnFactory.makeObjectColumnSelector(fieldName);
+    ColumnValueSelector selector = columnFactory.makeColumnValueSelector(fieldName);
     if (selector == null) {
       throw new IAE("selector in ExtendColumnAggregatorFactory should not be Null");
     } else {
@@ -75,7 +74,7 @@ public class ExtendColumnAggregatorFactory extends AggregatorFactory
   @Override
   public BufferAggregator factorizeBuffered(ColumnSelectorFactory columnFactory)
   {
-    ObjectColumnSelector selector = columnFactory.makeObjectColumnSelector(fieldName);
+    ColumnValueSelector selector = columnFactory.makeColumnValueSelector(fieldName);
 
     final Class classOfObject = selector.classOfObject();
     if (!classOfObject.equals(Object.class) && !String.class.isAssignableFrom(classOfObject)) {

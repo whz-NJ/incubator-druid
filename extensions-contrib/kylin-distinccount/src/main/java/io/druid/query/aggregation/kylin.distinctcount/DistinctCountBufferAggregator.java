@@ -22,7 +22,7 @@ package io.druid.query.aggregation.kylin.distinctcount;
 import io.druid.collections.bitmap.ImmutableBitmap;
 import io.druid.collections.bitmap.RoaringBitmapFactory;
 import io.druid.query.aggregation.BufferAggregator;
-import io.druid.segment.ObjectColumnSelector;
+import io.druid.segment.ColumnValueSelector;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
@@ -31,10 +31,10 @@ import java.util.IdentityHashMap;
 
 public class DistinctCountBufferAggregator implements BufferAggregator
 {
-  private final ObjectColumnSelector selector;
+  private final ColumnValueSelector selector;
   private final IdentityHashMap<ByteBuffer, Int2ObjectMap<ImmutableBitmap>> bitmaps = new IdentityHashMap<>();
 
-  public DistinctCountBufferAggregator(ObjectColumnSelector selector)
+  public DistinctCountBufferAggregator(ColumnValueSelector selector)
   {
     this.selector = selector;
   }
@@ -54,7 +54,7 @@ public class DistinctCountBufferAggregator implements BufferAggregator
     }
 
     ImmutableBitmap oldBitmap = getBitmap(buf, position);
-    ImmutableBitmap mergedBitmap = oldBitmap.union(updateBitmap);
+    ImmutableBitmap mergedBitmap = oldBitmap.intersection(updateBitmap);
     bitmaps.get(buf).put(position, mergedBitmap);
   }
 

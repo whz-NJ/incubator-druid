@@ -20,7 +20,7 @@
 package io.druid.query.aggregation.decimal;
 
 import io.druid.query.aggregation.BufferAggregator;
-import io.druid.segment.ObjectColumnSelector;
+import io.druid.segment.ColumnValueSelector;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -28,9 +28,9 @@ import java.nio.ByteBuffer;
 
 public abstract class DecimalBufferAggregator implements BufferAggregator
 {
-  protected final ObjectColumnSelector selector;
+  protected final ColumnValueSelector selector;
 
-  public DecimalBufferAggregator(ObjectColumnSelector selector)
+  public DecimalBufferAggregator(ColumnValueSelector selector)
   {
     this.selector = selector;
   }

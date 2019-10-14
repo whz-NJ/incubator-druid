@@ -33,28 +33,28 @@ import io.druid.query.QueryRunnerTestHelper;
 import io.druid.query.aggregation.AggregatorFactory;
 import io.druid.query.dimension.DefaultDimensionSpec;
 import io.druid.query.dimension.DimensionSpec;
-import io.druid.query.groupby.GroupByQuery;
+import io.druid.query.groupby.GroupByQueryRunnerTest;
 import io.druid.query.groupby.GroupByQueryConfig;
 import io.druid.query.groupby.GroupByQueryRunnerFactory;
-import io.druid.query.groupby.GroupByQueryRunnerTest;
+import io.druid.query.groupby.GroupByQuery;
 import io.druid.query.groupby.GroupByQueryRunnerTestHelper;
 import io.druid.query.groupby.orderby.DefaultLimitSpec;
 import io.druid.query.groupby.orderby.OrderByColumnSpec;
-import io.druid.segment.IndexIO;
-import io.druid.segment.IndexMerger;
-import io.druid.segment.IndexMergerTestBase;
-import io.druid.segment.IndexMergerV9;
-import io.druid.segment.IndexSpec;
-import io.druid.segment.QueryableIndex;
-import io.druid.segment.QueryableIndexSegment;
 import io.druid.segment.TestHelper;
+import io.druid.segment.QueryableIndexSegment;
+import io.druid.segment.QueryableIndex;
+import io.druid.segment.IndexSpec;
+import io.druid.segment.IndexMerger;
+import io.druid.segment.IndexIO;
+import io.druid.segment.IndexMergerV9;
 import io.druid.segment.column.ColumnConfig;
-import io.druid.segment.data.CompressedObjectStrategy;
 import io.druid.segment.data.CompressionFactory;
+import io.druid.segment.data.CompressionStrategy;
 import io.druid.segment.data.ConciseBitmapSerdeFactory;
 import io.druid.segment.incremental.IncrementalIndex;
 import io.druid.segment.incremental.IncrementalIndexSchema;
 import io.druid.segment.serde.ComplexMetrics;
+import io.druid.segment.writeout.OffHeapMemorySegmentWriteOutMediumFactory;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
@@ -64,12 +64,11 @@ import java.util.List;
 
 public class DistinctCountGroupByQueryTest
 {
-
-  private static final IndexSpec INDEX_SPEC = IndexMergerTestBase.makeIndexSpec(
-      new ConciseBitmapSerdeFactory(),
-      CompressedObjectStrategy.CompressionStrategy.LZ4,
-      CompressedObjectStrategy.CompressionStrategy.LZ4,
-      CompressionFactory.LongEncodingStrategy.LONGS
+  private static final IndexSpec INDEX_SPEC = new IndexSpec(
+          new ConciseBitmapSerdeFactory(),
+          CompressionStrategy.LZ4,
+          CompressionStrategy.LZ4,
+          CompressionFactory.LongEncodingStrategy.LONGS
   );
   private static IndexMerger INDEX_MERGER;
 
@@ -86,7 +85,9 @@ public class DistinctCountGroupByQueryTest
       JSON_MAPPER.registerModule(mod);
     }
 
-    INDEX_IO = new IndexIO(JSON_MAPPER, new ColumnConfig()
+
+    INDEX_IO = new IndexIO(JSON_MAPPER, OffHeapMemorySegmentWriteOutMediumFactory
+            .instance(), new ColumnConfig()
     {
       @Override
       public int columnCacheSizeBytes()
@@ -95,7 +96,7 @@ public class DistinctCountGroupByQueryTest
       }
     });
 
-    INDEX_MERGER = new IndexMergerV9(JSON_MAPPER, INDEX_IO);
+    INDEX_MERGER = new IndexMergerV9(JSON_MAPPER, INDEX_IO, OffHeapMemorySegmentWriteOutMediumFactory.instance());
   }
 
   @Test
@@ -181,7 +182,8 @@ public class DistinctCountGroupByQueryTest
         index,
         Intervals.of("1970-01-01T00:00:00.000Z/2020-01-01T00:00:00.000Z"),
         finalFile,
-        INDEX_SPEC
+        INDEX_SPEC,
+        null
     );
 
     QueryableIndex queryableIndex = INDEX_IO.loadIndex(finalFile);

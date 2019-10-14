@@ -22,7 +22,6 @@ package io.druid.query.aggregation.kylin.distinctcount;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
-
 import io.druid.collections.bitmap.ImmutableBitmap;
 import io.druid.collections.bitmap.RoaringBitmapFactory;
 import io.druid.java.util.common.IAE;
@@ -32,7 +31,7 @@ import io.druid.query.aggregation.AggregatorFactory;
 import io.druid.query.aggregation.AggregatorUtil;
 import io.druid.query.aggregation.BufferAggregator;
 import io.druid.segment.ColumnSelectorFactory;
-import io.druid.segment.ObjectColumnSelector;
+import io.druid.segment.ColumnValueSelector;
 import io.druid.segment.data.RoaringBitmapSerdeFactory;
 import org.apache.commons.codec.binary.Base64;
 
@@ -60,7 +59,8 @@ public class DistinctCountAggregatorFactory extends AggregatorFactory
   @Override
   public Aggregator factorize(ColumnSelectorFactory columnFactory)
   {
-    ObjectColumnSelector selector = columnFactory.makeObjectColumnSelector(fieldName);
+    ColumnValueSelector selector = columnFactory
+            .makeColumnValueSelector(fieldName);
     if (selector == null) {
       throw new IAE("selector in DistinctCountAggregatorFactory should not be Null");
     } else {
@@ -71,7 +71,7 @@ public class DistinctCountAggregatorFactory extends AggregatorFactory
   @Override
   public BufferAggregator factorizeBuffered(ColumnSelectorFactory columnFactory)
   {
-    ObjectColumnSelector selector = columnFactory.makeObjectColumnSelector(fieldName);
+    ColumnValueSelector selector = columnFactory.makeColumnValueSelector(fieldName);
 
     final Class classOfObject = selector.classOfObject();
     if (!classOfObject.equals(Object.class) && !ImmutableBitmap.class.isAssignableFrom(classOfObject)) {
@@ -105,7 +105,7 @@ public class DistinctCountAggregatorFactory extends AggregatorFactory
       return rhs;
     }
 
-    return ((ImmutableBitmap) lhs).union((ImmutableBitmap) rhs);
+    return ((ImmutableBitmap) lhs).intersection((ImmutableBitmap) rhs);
   }
 
   @Override

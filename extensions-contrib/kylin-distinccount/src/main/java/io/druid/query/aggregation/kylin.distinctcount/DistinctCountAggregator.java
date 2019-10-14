@@ -22,15 +22,15 @@ package io.druid.query.aggregation.kylin.distinctcount;
 import io.druid.collections.bitmap.ImmutableBitmap;
 import io.druid.collections.bitmap.RoaringBitmapFactory;
 import io.druid.query.aggregation.Aggregator;
-import io.druid.segment.ObjectColumnSelector;
+import io.druid.segment.ColumnValueSelector;
 
 public class DistinctCountAggregator implements Aggregator
 {
 
-  private final ObjectColumnSelector selector;
+  private final ColumnValueSelector selector;
   private ImmutableBitmap bitmap = new RoaringBitmapFactory().makeEmptyImmutableBitmap();
 
-  public DistinctCountAggregator(ObjectColumnSelector selector)
+  public DistinctCountAggregator(ColumnValueSelector selector)
   {
     this.selector = selector;
   }
@@ -38,13 +38,7 @@ public class DistinctCountAggregator implements Aggregator
   @Override
   public void aggregate()
   {
-    bitmap = bitmap.union((ImmutableBitmap) selector.getObject());
-  }
-
-  @Override
-  public void reset()
-  {
-    bitmap = null;
+    bitmap = bitmap.intersection((ImmutableBitmap) selector.getObject());
   }
 
   @Override

@@ -28,7 +28,7 @@ import io.druid.query.aggregation.AggregatorFactory;
 import io.druid.query.aggregation.AggregatorUtil;
 import io.druid.query.aggregation.BufferAggregator;
 import io.druid.segment.ColumnSelectorFactory;
-import io.druid.segment.ObjectColumnSelector;
+import io.druid.segment.ColumnValueSelector;
 
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
@@ -55,7 +55,7 @@ public class DecimalMinAggregatorFactory extends DecimalAggregatorFactory
   @Override
   public Aggregator factorize(ColumnSelectorFactory columnFactory)
   {
-    ObjectColumnSelector selector = columnFactory.makeObjectColumnSelector(fieldName);
+    ColumnValueSelector selector = columnFactory.makeColumnValueSelector(fieldName);
     if (selector == null) {
       throw new IAE("selector in ExtendColumnAggregatorFactory should not be Null");
     } else {
@@ -66,7 +66,7 @@ public class DecimalMinAggregatorFactory extends DecimalAggregatorFactory
   @Override
   public BufferAggregator factorizeBuffered(ColumnSelectorFactory columnFactory)
   {
-    ObjectColumnSelector selector = columnFactory.makeObjectColumnSelector(fieldName);
+    ColumnValueSelector selector = columnFactory.makeColumnValueSelector(fieldName);
 
     final Class classOfObject = selector.classOfObject();
     if (!classOfObject.equals(Object.class) && !BigDecimal.class.isAssignableFrom(classOfObject)) {

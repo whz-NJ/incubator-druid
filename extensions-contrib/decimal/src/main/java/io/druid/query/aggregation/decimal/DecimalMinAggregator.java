@@ -20,16 +20,16 @@
 package io.druid.query.aggregation.decimal;
 
 import io.druid.query.aggregation.Aggregator;
-import io.druid.segment.ObjectColumnSelector;
+import io.druid.segment.ColumnValueSelector;
 
 import java.math.BigDecimal;
 
 public class DecimalMinAggregator implements Aggregator
 {
-  private final ObjectColumnSelector selector;
+  private final ColumnValueSelector selector;
   private BigDecimal min = null;
 
-  public DecimalMinAggregator(ObjectColumnSelector selector)
+  public DecimalMinAggregator(ColumnValueSelector selector)
   {
     this.selector = selector;
   }
@@ -44,12 +44,6 @@ public class DecimalMinAggregator implements Aggregator
     } else if (min.compareTo(value) > 0) {
       min = value;
     }
-  }
-
-  @Override
-  public void reset()
-  {
-    min = null;
   }
 
   @Override

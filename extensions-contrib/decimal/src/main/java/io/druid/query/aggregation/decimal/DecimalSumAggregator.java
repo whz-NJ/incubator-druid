@@ -20,17 +20,17 @@
 package io.druid.query.aggregation.decimal;
 
 import io.druid.query.aggregation.Aggregator;
-import io.druid.segment.ObjectColumnSelector;
+import io.druid.segment.ColumnValueSelector;
 
 import java.math.BigDecimal;
 
 public class DecimalSumAggregator implements Aggregator
 {
 
-  private final ObjectColumnSelector selector;
+  private final ColumnValueSelector selector;
   private BigDecimal sum = new BigDecimal(0);
 
-  public DecimalSumAggregator(ObjectColumnSelector selector)
+  public DecimalSumAggregator(ColumnValueSelector selector)
   {
     this.selector = selector;
   }
@@ -41,12 +41,6 @@ public class DecimalSumAggregator implements Aggregator
     BigDecimal value = (BigDecimal) selector.getObject();
 
     sum = sum.add(value);
-  }
-
-  @Override
-  public void reset()
-  {
-    sum = new BigDecimal(0);
   }
 
   @Override

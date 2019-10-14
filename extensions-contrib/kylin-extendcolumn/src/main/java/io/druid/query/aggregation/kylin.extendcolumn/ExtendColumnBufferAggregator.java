@@ -20,17 +20,17 @@
 package io.druid.query.aggregation.kylin.extendcolumn;
 
 import io.druid.query.aggregation.BufferAggregator;
-import io.druid.segment.ObjectColumnSelector;
+import io.druid.segment.ColumnValueSelector;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 public class ExtendColumnBufferAggregator implements BufferAggregator
 {
-  private final ObjectColumnSelector selector;
+  private final ColumnValueSelector selector;
   private static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
 
-  public ExtendColumnBufferAggregator(ObjectColumnSelector selector)
+  public ExtendColumnBufferAggregator(ColumnValueSelector selector)
   {
     this.selector = selector;
   }

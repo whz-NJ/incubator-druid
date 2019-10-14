@@ -20,15 +20,15 @@
 package io.druid.query.aggregation.kylin.extendcolumn;
 
 import io.druid.query.aggregation.Aggregator;
-import io.druid.segment.ObjectColumnSelector;
+import io.druid.segment.ColumnValueSelector;
 
 public class ExtendColumnAggregator implements Aggregator
 {
 
-  private final ObjectColumnSelector selector;
+  private final ColumnValueSelector selector;
   private String result;
 
-  public ExtendColumnAggregator(ObjectColumnSelector selector)
+  public ExtendColumnAggregator(ColumnValueSelector selector)
   {
     this.selector = selector;
   }
@@ -43,12 +43,6 @@ public class ExtendColumnAggregator implements Aggregator
     }
 
     result = tmp;
-  }
-
-  @Override
-  public void reset()
-  {
-    result = null;
   }
 
   @Override
